@@ -1,15 +1,56 @@
-# Secrets
-*.env
+########################
+# Secrets & Credentials
+########################
+.env
+.env.*
 *.token
 *.key
+*.pem
+*.crt
+*.p12
+*.jks
+*.keystore
+*secret*
+*password*
 
-# Docker
+########################
+# Git / Auth
+########################
+.git-credentials
+.gitconfig.local
+
+########################
+# Docker / Runtime Data
+########################
 **/data/
 **/volumes/
+**/storage/
+**/wal/
+**/chunks/
+**/indexes/
+**/journal/
 
-# OS
+########################
+# Observability tooling
+########################
+**/splunk/etc/
+**/splunk/var/
+**/prometheus/data/
+**/grafana/data/
+**/otel-collector/data/
+
+########################
+# Logs & Debug
+########################
+*.log
+*.out
+*.err
+
+########################
+# OS / Editor
+########################
 .DS_Store
 *.swp
-
-# Logs
-*.log
+*.swo
+.vscode/
+.idea/
