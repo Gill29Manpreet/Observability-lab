@@ -1,0 +1,15 @@
+# Secrets
+*.env
+*.token
+*.key
+
+# Docker
+**/data/
+**/volumes/
+
+# OS
+.DS_Store
+*.swp
+
+# Logs
+*.log

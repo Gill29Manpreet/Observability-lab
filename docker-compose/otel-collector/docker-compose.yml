@@ -1,0 +1,18 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector.yml"]
+    volumes:
+      - /opt/monitoring/otel-collector/otel-collector.yml:/etc/otel-collector.yml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # OTEL internal metrics
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+networks:
+  monitor-net:
+    external: true

@@ -1,0 +1,102 @@
+receivers:
+  hostmetrics:
+    collection_interval: 60s
+    scrapers:
+      cpu: {}
+      memory: {}
+      disk: {}
+      filesystem: {}
+      load: {}
+      network: {}
+      paging: {}
+      processes: {}
+      process:
+      system: {}
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+#  smartagent/exec_docker:
+#    type: telegraf/exec
+#    command: /opt/monitoring/otel-collector/docker_info.sh
+#    timeout: 30s
+#    telegrafParser:
+#      dataFormat: "influx"
+processors:
+
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+  resourcedetection:
+    detectors: [system, gcp]
+    override: true
+
+  resource/add_environment:
+    attributes:
+      - action: insert
+        key: deployment.environment
+        value: "lab"
+
+      - action: insert
+        key: service.name
+        value: "otel-host"
+
+exporters:
+#  otlphttp/splunk_traces:
+#    endpoint: "https://ingest.sg0.signalfx.com/v2/trace/otlp"
+#    headers:
+#      X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  otlp/splunk:
+    endpoint: ingest.sg0.signalfx.com:443
+    headers:
+      X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+
+  splunk_hec:
+    token: "e71529b6-77e4-42ec-9942-6d34c746bd7c"
+    endpoint: "http://34.66.150.31:8088/services/collector/event"
+    source: "otel"
+    index: "main"
+
+  signalfx:
+    access_token: "LFpIZu-TGRc76mCZozr8zg"
+    ingest_url: "https://ingest.sg0.signalfx.com"
+    api_url: "https://api.sg0.signalfx.com"
+    sync_host_metadata: true
+
+service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    metrics:
+      receivers: [otlp,hostmetrics]
+      processors: [batch,resourcedetection, resource/add_environment]
+      exporters: [debug,signalfx]
+
+    traces:
+      receivers: [otlp]
+      processors: [resourcedetection, resource/add_environment, batch]
+      exporters: [debug,otlp/splunk,otlp/jaeger]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug,splunk_hec]
